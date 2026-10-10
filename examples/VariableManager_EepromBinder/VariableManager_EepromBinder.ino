@@ -1,7 +1,20 @@
-//An example sketch that lets you experiement with the library
-//It shows how to create Devices and how to bind variables to those Devices
-//Has one variable of each supported type and multiple independent interfaces to interact with them
+//An example sketch that shows how you can use the library
 
+//core library methods:
+//#include <EepromBinder.h> - Include the library, the library should be cloned to Documents/Arduino/libraries
+//EepromBinder::bind(ledOnDurationMs, 0, 1000); - Bind a variable to an address of the EEPROM, with a factory value set
+//   This command will automatically restore the value stored in EEPROM
+//EepromBinder::checkAllIfDue(millis()); - Call this periodically to check for changes, than commit them to EEPROM when due (default 20s after last change detected)
+
+//This is all that's needed for reugular operation
+
+//EepromBinder::factoryResetAll() - can be used after flashing on a new MCU or adding new variables to to restore the user defined defaults instead of whatever was stored on the EEPROM before
+
+
+
+
+
+//Demo sketch requires VariableManager library, so user inputs can be done on a serial UI
 
 
 #include <VariableManager.h>
@@ -18,7 +31,6 @@ long ledLastToggled = 0;
 LocalDevice myLedDevice(6, "LED");
 
 void setup(){
-  Serial1.setFIFOSize(256);//Increase default 32 bytes to 256 buffer (important when master is batch transmitting, or Device is busy and can't process it in time)
   Serial.begin(115200);
   Serial.println();
 
