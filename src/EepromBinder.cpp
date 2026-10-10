@@ -33,19 +33,25 @@ bool EepromBinder::initialized = false;
     lastChecked = ms;
     checkAll(ms);
     if(unsavedChanges > 0 && waitDuration + lastChanged <= ms){
-      DEBUG_PRINT(unsavedChanges);
-      DEBUG_PRINTLN(" change(s) committed to EEPROM.");
-      
-      EEPROM.commit();
-      unsavedChanges = 0;
-
-      EepromBinder* next = headInstance;//Clear staged flags
-      int n = 0;
-      while(next){
-        next->valueStaged = false;
-        next = next->nextInstance;
-      }
+      EepromBinder::commitToEeprom();
     }
+  }
+}
+
+void EepromBinder::commitToEeprom(){
+  if(!initialized)init();
+
+  DEBUG_PRINT(unsavedChanges);
+  DEBUG_PRINTLN(" change(s) committed to EEPROM.");
+  
+  EEPROM.commit();
+  unsavedChanges = 0;
+
+  EepromBinder* next = headInstance;//Clear staged flags
+  int n = 0;
+  while(next){
+    next->valueStaged = false;
+    next = next->nextInstance;
   }
 }
 
@@ -58,9 +64,10 @@ void EepromBinder::factoryResetAll(void* ctx){
   EepromBinder* next = headInstance;
   int n = 0;
   while(next){
-    next->factoryReset();
+    if(next->factoryReset())n++;
     next = next->nextInstance;
   }
+  if(n > 0)commitToEeprom();
 }
 
 bool EepromBinder::unsavedChangesPending(){

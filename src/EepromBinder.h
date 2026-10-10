@@ -36,13 +36,14 @@ public:
   static void checkAll(unsigned long ms);
   static void checkAllIfDue();
   static void checkAllIfDue(unsigned long ms);
+  static void commitToEeprom();
   static void factoryResetAll(void* ctx = nullptr);
   static void factoryResetAllOnTrue(bool confirm);//A wrapper, primarily for VariableManager compatibility
   static bool unsavedChangesPending();
   EepromBinder* nextInstance = nullptr;
   EepromBinder(uint16_t address_);
   void registerSelf();
-  virtual void factoryReset() = 0;
+  virtual bool factoryReset() = 0;
   template <typename T>
   static EepromBinder* bind(T& value_, uint16_t address_, typename std::remove_volatile<T>::type factoryValue_) {
     return new Binder<T>(value_, address_, factoryValue_);
@@ -83,14 +84,16 @@ public:
     }
   }
 
-  void factoryReset() override{
+  bool factoryReset() override{
     if(value != factoryValue){
       DEBUG_PRINT("At address 0x");
       DEBUG_PRINT(address, HEX);
       DEBUG_PRINTLN(", factory reset from " + String(value) + " to " + String(factoryValue));
       value = factoryValue;
       check(millis());
+      return true;
     }
+    return false;
   }
 };
 
