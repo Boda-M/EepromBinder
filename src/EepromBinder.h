@@ -1,9 +1,20 @@
-
 #ifndef EEPROM_BINDER_H
 #define EEPROM_BINDER_H
 
 #include <Arduino.h>
 #include <EEPROM.h>
+
+
+//#define EEPROM_BINDER_ENABLE_DEBUG_MESSAGES
+
+#ifdef EEPROM_BINDER_ENABLE_DEBUG_MESSAGES
+  #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)
+  #define DEBUG_PRINT(...) Serial.print(__VA_ARGS__)
+#else
+  #define DEBUG_PRINTLN(...) ((void)0)
+  #define DEBUG_PRINT(...) ((void)0)
+#endif
+
 
 template <typename T> class Binder;//Forward declare
 class EepromBinder{
@@ -19,13 +30,15 @@ protected:
   static void init();
   static bool initialized;
   virtual void check(unsigned long ms) =0;
-public:
   static int unsavedChanges;
+public:
   static void checkAll();
   static void checkAll(unsigned long ms);
   static void checkAllIfDue();
   static void checkAllIfDue(unsigned long ms);
   static void factoryResetAll(void* ctx = nullptr);
+  static void factoryResetAllOnTrue(bool confirm);//A wrapper, primarily for VariableManager compatibility
+  static bool unsavedChangesPending();
   EepromBinder* nextInstance = nullptr;
   EepromBinder(uint16_t address_);
   void registerSelf();
@@ -53,15 +66,15 @@ public:
   Binder(T& value_, uint16_t address_): value(value_), EepromBinder(address_){
     EEPROM.get(address, registeredValue);
     value = registeredValue;//update it from memory
-    Serial.print("Bound variable to EEPROM address 0x");
-    Serial.print(address, HEX);
-    Serial.println(". current value: " + String(value) + ", stored value: " + String(registeredValue)/* + "  (factory: " + String(factoryValue) + ")"*/);
+    DEBUG_PRINT("Bound variable to EEPROM address 0x");
+    DEBUG_PRINT(address, HEX);
+    DEBUG_PRINTLN(". current value: " + String(value) + ", stored value: " + String(registeredValue)/* + "  (factory: " + String(factoryValue) + ")"*/);
   }
   void check(unsigned long ms) override{
     if(registeredValue != value){
-      Serial.print("Change detected for address 0x");
-      Serial.print(address, HEX);
-      Serial.println(", from " + String(registeredValue) + " to " + String(value));
+      DEBUG_PRINT("Change detected for address 0x");
+      DEBUG_PRINT(address, HEX);
+      DEBUG_PRINTLN(", from " + String(registeredValue) + " to " + String(value));
       if(!valueStaged)unsavedChanges++;
       lastChanged = ms;
       registeredValue = value;
@@ -72,9 +85,9 @@ public:
 
   void factoryReset() override{
     if(value != factoryValue){
-      Serial.print("At address 0x");
-      Serial.print(address, HEX);
-      Serial.println(", factory reset from " + String(value) + " to " + String(factoryValue));
+      DEBUG_PRINT("At address 0x");
+      DEBUG_PRINT(address, HEX);
+      DEBUG_PRINTLN(", factory reset from " + String(value) + " to " + String(factoryValue));
       value = factoryValue;
       check(millis());
     }

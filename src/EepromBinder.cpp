@@ -10,7 +10,7 @@ bool EepromBinder::initialized = false;
 /*static*/ void EepromBinder::init(){
   EEPROM.begin(256);
   initialized = true;
-  Serial.println("EEPROM binder initialized.");
+  DEBUG_PRINTLN("EEPROM binder initialized.");
 }
 
 /*static*/ void EepromBinder::checkAll(){checkAll(millis());}
@@ -33,7 +33,8 @@ bool EepromBinder::initialized = false;
     lastChecked = ms;
     checkAll(ms);
     if(unsavedChanges > 0 && waitDuration + lastChanged <= ms){
-      Serial.println(String(unsavedChanges) + " change(s) committed to EEPROM.");
+      DEBUG_PRINT(unsavedChanges);
+      DEBUG_PRINTLN(" change(s) committed to EEPROM.");
       
       EEPROM.commit();
       unsavedChanges = 0;
@@ -48,6 +49,10 @@ bool EepromBinder::initialized = false;
   }
 }
 
+void EepromBinder::factoryResetAllOnTrue(bool confirm){
+  if(confirm)factoryResetAll();
+}
+
 void EepromBinder::factoryResetAll(void* ctx){
   if(!initialized)init();
   EepromBinder* next = headInstance;
@@ -56,6 +61,10 @@ void EepromBinder::factoryResetAll(void* ctx){
     next->factoryReset();
     next = next->nextInstance;
   }
+}
+
+bool EepromBinder::unsavedChangesPending(){
+  return unsavedChanges > 0;
 }
 
 EepromBinder::EepromBinder(uint16_t address_)
