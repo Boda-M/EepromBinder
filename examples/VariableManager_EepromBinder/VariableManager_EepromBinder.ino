@@ -49,8 +49,8 @@ void setup(){
   myLedDevice.bind(ledOffDurationMs, 0x01, "offDurationMs");
   myLedDevice.bind(ledState, 0x02, "state", rwFlag::R);
   myLedDevice.bind(ledLastToggled, 0x03, "lastToggled", rwFlag::R);
-  myLedDevice.bind(EepromBinder::unsavedChangesPending, nullptr, 0xA0, "eepromPending");
-  myLedDevice.bind(nullptr, EepromBinder::factoryResetAllOnTrue, 0xA1, "factoryReset");
+  myLedDevice.bind(EepromBinder::unsavedChangesPending, nullptr, 0xF0, "eepromPending");
+  myLedDevice.bind(nullptr, EepromBinder::factoryResetAllOnTrue, 0xF1, "factoryReset");
   SerialUI::printVariableList();
 }
 
